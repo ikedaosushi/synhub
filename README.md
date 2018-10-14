@@ -24,3 +24,6 @@ $ go run main.go find
 |    4 | research |  33,787,132 |
 |    5 | look_for |     122,622 |
 ```
+
+## License
+MIT
