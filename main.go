@@ -7,28 +7,28 @@ import (
 	"io"
 	"log"
 	"os"
-	"reflect"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
 
+	"github.com/deciphernow/synonyms/wordnet"
 	"github.com/dustin/go-humanize"
 	"github.com/github/hub/github"
 	api "github.com/google/go-github/github"
 	"github.com/mattn/go-colorable"
 	"github.com/mitchellh/colorstring"
 	"github.com/mitchellh/go-homedir"
-  "github.com/olekukonko/tablewriter"
-  _ "github.com/urfave/cli"
-	"github.com/deciphernow/synonyms/wordnet"
+	"github.com/olekukonko/tablewriter"
+	_ "github.com/urfave/cli"
 )
 
 const (
 	// EnvDebug is environmental var to handle debug mode
-	EnvDebug = "GHKW_DEBUG"
+	EnvDebug = "SYNHUB_DEBUG"
 )
 
 // Exit codes are in value that represnet an exit code for a paticular error
@@ -134,8 +134,8 @@ func (c *CLI) Run(args []string) int {
 		return ExitCodeBadArgs
 	}
 
-  originKeywords := parsedArgs
-  keywords := getSynonyms(originKeywords)
+	originKeywords := parsedArgs
+	keywords := getSynonyms(originKeywords)
 	Debugf("keywords: %s", keywords)
 
 	searchTerm := NewSearchTerm()
@@ -252,7 +252,7 @@ func getAccessTokenFromConf() (string, error) {
 		return "", err
 	}
 
-	confPath := filepath.Join(homeDir, ".config", "ghkw")
+	confPath := filepath.Join(homeDir, ".config", "synhub")
 	err = os.Setenv("HUB_CONFIG", confPath)
 	if err != nil {
 		return "", err
@@ -286,16 +286,16 @@ func sanitizeKeyword(keyword string) string {
 }
 
 func getSynonyms(keywords []string) []string {
-  var synonyms []string
-  for _, keyword := range keywords {
-    tokens := wordnet.Tokenize(keyword)
-    for _, word := range tokens {
-      synonym := wordnet.SynonymsForWord(word)
-      // fmt.Println(reflect.TypeOf(synonym)) 
-      synonyms =append(synonyms, synonym...)
-    }
-  }
-  return synonyms[:5]
+	var synonyms []string
+	for _, keyword := range keywords {
+		tokens := wordnet.Tokenize(keyword)
+		for _, word := range tokens {
+			synonym := wordnet.SynonymsForWord(word)
+			// fmt.Println(reflect.TypeOf(synonym))
+			synonyms = append(synonyms, synonym...)
+		}
+	}
+	return synonyms[:5]
 }
 
 // NewClient creates SearchClient
@@ -345,6 +345,7 @@ func Repository(client *api.Client) (*api.Repository, error) {
 	}
 	return repo, err
 }
+
 // SearchTerm is search term in GitHub object
 // See: https://developer.github.com/v3/search/#parameters-2
 type SearchTerm struct {
@@ -358,7 +359,6 @@ type SearchTerm struct {
 	user      string
 	repo      string
 }
-
 
 // NewSearchTerm creates SearchTerm
 func NewSearchTerm() *SearchTerm {
@@ -401,9 +401,9 @@ func main() {
 	os.Exit(cli.Run(os.Args))
 }
 
-var helpText = `Usage: ghkw [options...] [keyword ...]
+var helpText = `Usage: synhub [options...] [keyword ...]
 
-ghkw is a tool to know how many keyword is used in GitHub code.
+synhub is a tool to know how many keyword is used in GitHub code.
 
 You must specify keyword what you want to know keyword.
 
@@ -438,10 +438,4 @@ Options:
 
     See Also:
       https://developer.github.com/v3/search/#parameters-2
-
-Examples:
-    The following is how to do ghkw search "exclude_condition" and "exclusion_condition" with search option in the file contents, language is javascript and file size is over 1,000bytes.
-
-    ghkw --in=file --language=javascript --size=">1000" exclude_condition exclusion_condition
 `
-
